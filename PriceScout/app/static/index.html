@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriceScout — Find the best price. Keep more in your pocket.</title>
+  <meta name="description" content="Compare real prices from India's trusted electronics stores, all in one place. Real-time pricing across Amazon India and Flipkart.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-logo" id="brand-logo">
+        <span class="brand-symbol">₹</span>
+        <span class="brand-name">PriceScout</span>
+      </a>
+
+      <div class="nav-right">
+        <div class="status-indicator" id="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Live dual-store price sync</span>
+        </div>
+
+        <!-- Wishlist Button -->
+        <button id="btn-open-wishlist" class="btn-subtle" title="View Saved Wishlist">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+          <span>Wishlist</span>
+          <span class="badge-count" id="wishlist-badge">0</span>
+        </button>
+
+        <button id="btn-purge-cache" class="btn-subtle" title="Purge 5-minute cache">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <span>Refresh Cache</span>
+        </button>
+
+        <!-- User Authentication Button / Profile Menu -->
+        <div class="auth-wrapper">
+          <button id="btn-auth-modal" class="btn-primary-mini" title="Sign In with Supabase">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="5"/>
+              <path d="M20 21a8 8 0 1 0-16 0"/>
+            </svg>
+            <span id="auth-btn-text">Sign In</span>
+          </button>
+
+          <div id="user-profile-menu" class="user-menu" style="display: none;">
+            <div class="user-avatar" id="user-avatar-initial">U</div>
+            <span class="user-email-text" id="user-email-text">user@email.com</span>
+            <button type="button" id="btn-logout" class="btn-subtle-sm" title="Sign Out">Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+      <div class="eyebrow">— SMARTER SHOPPING STARTS HERE</div>
+      
+      <h1 class="hero-title">
+        <span class="headline-primary">Find the best price.</span>
+        <span class="headline-secondary">Keep more in your pocket.</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Compare real prices from India's trusted electronics stores, all in one place.
+      </p>
+
+      <!-- Search Box Form -->
+      <form id="search-form" class="search-form" role="search">
+        <div class="search-box-card">
+          <div class="search-input-group">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input 
+              type="search" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="Search products (e.g. iPhone 16, Samsung Galaxy S24, Sony WH-1000XM5)..." 
+              autocomplete="off"
+              spellcheck="false"
+              required
+            />
+            <button type="button" id="clear-search-btn" class="clear-input-btn" title="Clear input" aria-label="Clear Search Input" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" id="search-submit-btn" class="btn-compare">
+            <span>Compare prices</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M7 17L17 7M17 7H7M17 7V17"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Try searching chips -->
+        <div class="try-searching-row">
+          <span class="try-label">Try searching</span>
+          <div class="chips-list">
+            <button type="button" class="search-chip" data-query="Samsung Galaxy S24">Samsung Galaxy S24</button>
+            <button type="button" class="search-chip" data-query="iPhone 16">iPhone 16</button>
+            <button type="button" class="search-chip" data-query="Sony Bravia TV">Sony Bravia TV</button>
+            <button type="button" class="search-chip" data-query="Galaxy Book 5">Galaxy Book 5</button>
+            <button type="button" class="search-chip" data-query="Sony WH-1000XM5">Sony WH-1000XM5</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Main Comparison Content Area -->
+  <main class="main-wrapper">
+    <div class="main-container">
+
+      <!-- Price Comparison Section Header -->
+      <div class="section-header" id="section-header">
+        <div class="eyebrow">— PRICE COMPARISON</div>
+        <h2 class="results-heading" id="results-heading">
+          Results for "<span id="query-display">iPhone 16</span>"
+        </h2>
+      </div>
+
+      <!-- Info / Alert Banner (Matching screenshot) -->
+      <div class="info-banner" id="info-banner">
+        <div class="banner-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div class="banner-text" id="banner-text">
+          Showing real-time live price comparison across Amazon India and Flipkart. Prices update automatically on query.
+        </div>
+      </div>
+
+      <!-- Filter & View Toolbar -->
+      <div class="results-toolbar" id="results-toolbar">
+        <!-- Store Selector Pills -->
+        <div class="store-tabs" role="radiogroup">
+          <label class="store-tab active">
+            <input type="radio" name="source" value="all" checked>
+            <span>All Stores</span>
+          </label>
+          <label class="store-tab">
+            <input type="radio" name="source" value="amazon">
+            <span class="dot-store amz-dot"></span>
+            <span>Amazon India</span>
+          </label>
+          <label class="store-tab">
+            <input type="radio" name="source" value="flipkart">
+            <span class="dot-store flp-dot"></span>
+            <span>Flipkart</span>
+          </label>
+        </div>
+
+        <!-- Controls: Sort & Filter -->
+        <div class="toolbar-controls">
+          <div class="view-switcher">
+            <button type="button" class="view-switch-btn active" id="view-split-btn" title="Side-by-side store comparison">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="8" height="18" x="3" y="3" rx="1"/>
+                <rect width="8" height="18" x="13" y="3" rx="1"/>
+              </svg>
+              <span>Split View</span>
+            </button>
+            <button type="button" class="view-switch-btn" id="view-merged-btn" title="Unified feed">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect width="7" height="7" x="3" y="3" rx="1"/>
+                <rect width="7" height="7" x="14" y="3" rx="1"/>
+                <rect width="7" height="7" x="14" y="14" rx="1"/>
+                <rect width="7" height="7" x="3" y="14" rx="1"/>
+              </svg>
+              <span>Unified Feed</span>
+            </button>
+          </div>
+
+          <div class="sort-wrapper">
+            <select id="sort-select" class="sort-select">
+              <option value="">Featured / Best Match</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating_desc">Top Customer Rating</option>
+              <option value="discount_desc">Biggest Discount</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Filter Bar (Relevance, Price & Rating) -->
+      <div class="filters-bar" id="filters-bar">
+        <div class="filter-chip-row">
+          <span class="filter-prefix">Filter:</span>
+          <button type="button" class="filter-pill active" id="filter-pill-strict" title="Hide unrelated phone cases, covers, and cross-brand ads">
+            🎯 Exact Product Only (No Ads/Cases)
+          </button>
+          <button type="button" class="filter-pill" id="filter-pill-deals">🔥 High Discounts (&gt;20%)</button>
+          <button type="button" class="filter-pill" id="filter-pill-fourstar">⭐ 4.0★ & Above</button>
+          <button type="button" class="filter-pill" id="filter-pill-under10k">&lt; ₹10,000</button>
+          <button type="button" class="filter-pill" id="filter-pill-under50k">&lt; ₹50,000</button>
+          <button type="button" class="filter-pill-reset" id="filter-pill-reset">Reset filters</button>
+        </div>
+
+        <div class="meta-counter">
+          <span id="results-count-text">0 products found</span>
+          <span class="counter-sep">•</span>
+          <span id="latency-text">0ms</span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loading-state" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p class="loading-text">Fetching real-time prices from Amazon & Flipkart...</p>
+      </div>
+
+      <!-- Empty / No Results State -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-icon">🔍</div>
+        <h3 id="empty-title">No products found</h3>
+        <p id="empty-desc">Try checking your spelling or searching for a broader keyword like "iPhone" or "headphones".</p>
+      </div>
+
+      <!-- 1. Split View: Side-by-Side Amazon & Flipkart -->
+      <div class="split-comparison-grid" id="split-view-container">
+        <!-- Amazon Column -->
+        <div class="store-panel">
+          <div class="panel-header amz-panel-header">
+            <div class="panel-store-title">
+              <span class="store-dot amz-dot"></span>
+              <strong>Amazon India</strong>
+            </div>
+            <span class="panel-count" id="amazon-count">0 items</span>
+          </div>
+          <div class="cards-list" id="amazon-products-grid">
+            <!-- Amazon cards -->
+          </div>
+        </div>
+
+        <!-- Flipkart Column -->
+        <div class="store-panel">
+          <div class="panel-header flp-panel-header">
+            <div class="panel-store-title">
+              <span class="store-dot flp-dot"></span>
+              <strong>Flipkart</strong>
+            </div>
+            <span class="panel-count" id="flipkart-count">0 items</span>
+          </div>
+          <div class="cards-list" id="flipkart-products-grid">
+            <!-- Flipkart cards -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Merged Grid View -->
+      <div class="merged-grid" id="merged-grid-container" style="display: none;">
+        <div class="cards-grid" id="merged-products-grid">
+          <!-- Merged cards -->
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Head-to-Head Comparison Drawer -->
+  <aside class="compare-tray" id="compare-tray" style="display: none;">
+    <div class="tray-container">
+      <div class="tray-left">
+        <span class="tray-badge" id="tray-count">0/2</span>
+        <span class="tray-msg">Products selected for side-by-side comparison</span>
+      </div>
+      <div class="tray-previews" id="tray-previews"></div>
+      <div class="tray-actions">
+        <button type="button" class="btn-compare-action" id="btn-open-compare" disabled>Compare Now</button>
+        <button type="button" class="btn-tray-clear" id="btn-clear-compare">Clear</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Comparison Modal -->
+  <div class="modal-backdrop" id="compare-modal" style="display: none;" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Side-by-Side Product Comparison</h3>
+        <button type="button" class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="compare-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Wishlist Drawer / Modal -->
+  <div class="modal-backdrop" id="wishlist-modal" style="display: none;" role="dialog" aria-modal="true">
+    <div class="modal-box wishlist-box">
+      <div class="modal-header">
+        <div class="modal-header-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+          </svg>
+          <h3>Saved Wishlist</h3>
+          <span class="badge-count" id="wishlist-modal-count">0 items</span>
+        </div>
+        <button type="button" class="modal-close" id="wishlist-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="wishlist-content">
+        <!-- Wishlist items or empty state inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase Authentication Modal -->
+  <div class="modal-backdrop" id="auth-modal" style="display: none;" role="dialog" aria-modal="true">
+    <div class="modal-box auth-box">
+      <div class="modal-header">
+        <h3 id="auth-modal-title">Sign in to PriceScout</h3>
+        <button type="button" class="modal-close" id="auth-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="tab-login">Sign In</button>
+          <button type="button" class="auth-tab" id="tab-signup">Sign Up</button>
+          <button type="button" class="auth-tab" id="tab-config">⚙️ Supabase Keys</button>
+        </div>
+
+        <!-- Sign In / Sign Up Form -->
+        <form id="auth-form" class="auth-form">
+          <div class="form-group">
+            <label for="auth-email">Email Address</label>
+            <input type="email" id="auth-email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" class="form-input" placeholder="Minimum 6 characters" required autocomplete="current-password">
+          </div>
+          <div class="auth-error-msg" id="auth-error-msg" style="display: none;"></div>
+          <button type="submit" id="auth-submit-btn" class="btn-compare full-width">
+            <span>Sign In</span>
+          </button>
+        </form>
+
+        <!-- Supabase Keys Config Panel -->
+        <div id="supabase-config-panel" style="display: none;" class="config-panel">
+          <p class="config-desc">Connect your Supabase project URL & Anon Key to sync user authentication and wishlists directly in Supabase.</p>
+          <div class="form-group">
+            <label for="input-supabase-url">Supabase Project URL</label>
+            <input type="url" id="input-supabase-url" class="form-input" placeholder="https://your-project.supabase.co">
+          </div>
+          <div class="form-group">
+            <label for="input-supabase-key">Supabase Anon Key</label>
+            <input type="password" id="input-supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          </div>
+          <button type="button" id="btn-save-supabase-config" class="btn-compare full-width">
+            Save Credentials
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Center -->
+  <div class="toast-center" id="toast-center" aria-live="polite"></div>
+
+  <!-- Minimal Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <strong>PriceScout</strong> — Smart live price comparison for Indian e-commerce with Supabase Cloud Wishlist.
+      </div>
+      <div class="footer-links">
+        <a href="/admin">⚙️ Admin Panel</a>
+        <span>•</span>
+        <a href="/health" target="_blank" rel="noopener noreferrer">Health</a>
+        <span>•</span>
+        <span>Real-time live scraping</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

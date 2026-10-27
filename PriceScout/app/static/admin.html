@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriceScout — Admin Management Panel</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    .admin-wrapper {
+      max-width: 1200px;
+      margin: 2rem auto 5rem;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .admin-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1.25rem;
+    }
+
+    .admin-title-group h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .admin-title-group p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.2rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-subtext {
+      font-size: 0.82rem;
+      color: var(--emerald);
+      font-weight: 600;
+    }
+
+    /* Admin Sections */
+    .admin-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.85rem;
+    }
+
+    .card-title-row h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    /* Wishlist Table */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    .admin-table th {
+      background: #fafbfc;
+      padding: 0.85rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .admin-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .admin-table tr:hover {
+      background: #fafbfc;
+    }
+
+    .tbl-thumb {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background: #fff;
+    }
+
+    .tbl-title-link {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 600;
+      max-width: 380px;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tbl-title-link:hover {
+      color: var(--emerald);
+    }
+
+    .btn-delete-row {
+      background: none;
+      border: 1px solid #fca5a5;
+      color: #ef4444;
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-delete-row:hover {
+      background: #fee2e2;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-logo" id="admin-brand-link">
+        <span class="brand-symbol">₹</span>
+        <span class="brand-name" id="nav-brand-title">PriceScout</span>
+        <span style="font-size:0.75rem;background:#f3f4f6;padding:0.2rem 0.5rem;border-radius:9999px;font-weight:700;color:#6b7280;margin-left:0.25rem;">Admin</span>
+      </a>
+
+      <div class="nav-right">
+        <a href="/" class="btn-subtle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>Back to Store</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-wrapper">
+    <!-- Header Title -->
+    <div class="admin-header-row">
+      <div class="admin-title-group">
+        <h1>⚙️ Management Console</h1>
+        <p>Control site branding, manage status badges, view user wishlists, and monitor live scraper health.</p>
+      </div>
+      <div>
+        <button type="button" id="btn-purge-cache-admin" class="btn-subtle">
+          ⚡ Clear Server Cache
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Wishlist Items</span>
+        <span class="stat-value" id="stat-wishlist-count">0</span>
+        <span class="stat-subtext" id="stat-supabase-status">Supabase Cloud</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Response Cache Items</span>
+        <span class="stat-value" id="stat-cache-count">0</span>
+        <span class="stat-subtext">5m In-Memory TTL</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Amazon Scraper Status</span>
+        <span class="stat-value" style="color:var(--emerald);">Online</span>
+        <span class="stat-subtext">TLS Chrome 120 Impersonation</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Flipkart Scraper Status</span>
+        <span class="stat-value" style="color:var(--emerald);">Online</span>
+        <span class="stat-subtext">Internal JSON API</span>
+      </div>
+    </div>
+
+    <!-- Branding & Content Settings -->
+    <section class="admin-card">
+      <div class="card-title-row">
+        <h3>🎨 Site Branding & Header Content</h3>
+        <span style="font-size:0.8rem;color:var(--text-muted);">Updates in real-time on the main page</span>
+      </div>
+
+      <form id="settings-form">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="input-brand-name"><strong>Brand Name (bname)</strong></label>
+            <input type="text" id="input-brand-name" class="form-input" placeholder="e.g. PriceScout" required>
+            <small style="color:var(--text-muted);font-size:0.75rem;">Appears in the header logo and footer</small>
+          </div>
+
+          <div class="form-group">
+            <label for="input-badge-text"><strong>Header Status Badge Text</strong></label>
+            <input type="text" id="input-badge-text" class="form-input" placeholder="e.g. Live dual-store price sync" required>
+            <small style="color:var(--text-muted);font-size:0.75rem;">Appears in the green pulse status pill on top right</small>
+          </div>
+        </div>
+
+        <div class="form-grid-2" style="margin-top:1.25rem;">
+          <div class="form-group">
+            <label for="input-headline-1"><strong>Hero Headline Primary</strong></label>
+            <input type="text" id="input-headline-1" class="form-input" placeholder="Find the best price.">
+          </div>
+
+          <div class="form-group">
+            <label for="input-headline-2"><strong>Hero Headline Secondary</strong></label>
+            <input type="text" id="input-headline-2" class="form-input" placeholder="Keep more in your pocket.">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:1.25rem;">
+          <label for="input-subtitle"><strong>Hero Subtitle</strong></label>
+          <input type="text" id="input-subtitle" class="form-input" placeholder="Compare real prices from India's trusted electronics stores, all in one place.">
+        </div>
+
+        <div style="margin-top:1.5rem;display:flex;align-items:center;justify-content:flex-end;">
+          <button type="submit" id="btn-save-settings" class="btn-compare">
+            Save Site Settings
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Wishlist Database Records (Supabase) -->
+    <section class="admin-card">
+      <div class="card-title-row">
+        <h3>❤️ All User Saved Wishlists (Database)</h3>
+        <button type="button" id="btn-refresh-wishlist" class="btn-subtle">
+          ↻ Refresh List
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Product Title</th>
+              <th>Store</th>
+              <th>Price</th>
+              <th>User ID</th>
+              <th>Saved Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="wishlist-table-body">
+            <tr>
+              <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                Loading saved products from Supabase...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast-center" id="toast-center"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const navBrandTitle = document.getElementById('nav-brand-title');
+      const inputBrandName = document.getElementById('input-brand-name');
+      const inputBadgeText = document.getElementById('input-badge-text');
+      const inputHeadline1 = document.getElementById('input-headline-1');
+      const inputHeadline2 = document.getElementById('input-headline-2');
+      const inputSubtitle = document.getElementById('input-subtitle');
+      const settingsForm = document.getElementById('settings-form');
+      const btnSaveSettings = document.getElementById('btn-save-settings');
+
+      const statWishlistCount = document.getElementById('stat-wishlist-count');
+      const statCacheCount = document.getElementById('stat-cache-count');
+      const statSupabaseStatus = document.getElementById('stat-supabase-status');
+      const wishlistTableBody = document.getElementById('wishlist-table-body');
+      const btnRefreshWishlist = document.getElementById('btn-refresh-wishlist');
+      const btnPurgeCacheAdmin = document.getElementById('btn-purge-cache-admin');
+      const toastCenter = document.getElementById('toast-center');
+
+      const inrFormatter = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      });
+
+      async function init() {
+        await loadSettings();
+        await loadStats();
+        await loadWishlistItems();
+        bindEvents();
+      }
+
+      function bindEvents() {
+        settingsForm.addEventListener('submit', handleSaveSettings);
+        btnRefreshWishlist.addEventListener('click', loadWishlistItems);
+        btnPurgeCacheAdmin.addEventListener('click', purgeCache);
+      }
+
+      async function loadSettings() {
+        try {
+          const res = await fetch('/api/settings');
+          if (res.ok) {
+            const data = await res.json();
+            inputBrandName.value = data.brand_name || 'PriceScout';
+            inputBadgeText.value = data.badge_text || 'Live dual-store price sync';
+            inputHeadline1.value = data.hero_headline_1 || 'Find the best price.';
+            inputHeadline2.value = data.hero_headline_2 || 'Keep more in your pocket.';
+            inputSubtitle.value = data.hero_subtitle || 'Compare real prices from India\'s trusted electronics stores, all in one place.';
+
+            navBrandTitle.textContent = data.brand_name || 'PriceScout';
+          }
+        } catch (e) {
+          console.warn('Could not load settings:', e);
+        }
+      }
+
+      async function handleSaveSettings(e) {
+        e.preventDefault();
+        btnSaveSettings.disabled = true;
+
+        const payload = {
+          brand_name: inputBrandName.value.trim(),
+          badge_text: inputBadgeText.value.trim(),
+          hero_headline_1: inputHeadline1.value.trim(),
+          hero_headline_2: inputHeadline2.value.trim(),
+          hero_subtitle: inputSubtitle.value.trim(),
+        };
+
+        try {
+          const res = await fetch('/api/admin/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          if (res.ok) {
+            showToast('✅ Site settings saved successfully!');
+            navBrandTitle.textContent = payload.brand_name;
+          } else {
+            showToast('Failed to save settings', 'danger');
+          }
+        } catch (err) {
+          showToast('Network error saving settings', 'danger');
+        } finally {
+          btnSaveSettings.disabled = false;
+        }
+      }
+
+      async function loadStats() {
+        try {
+          const res = await fetch('/api/admin/stats');
+          if (res.ok) {
+            const data = await res.json();
+            statCacheCount.textContent = data.cache_items_count || 0;
+            statWishlistCount.textContent = data.total_wishlist_items || 0;
+            statSupabaseStatus.textContent = data.supabase_connected ? 'Supabase Connected' : 'Supabase Not Configured';
+          }
+        } catch (e) {
+          console.warn('Could not load stats:', e);
+        }
+      }
+
+      async function loadWishlistItems() {
+        wishlistTableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+              Loading saved products from Supabase...
+            </td>
+          </tr>
+        `;
+
+        try {
+          const res = await fetch('/api/admin/wishlist');
+          if (res.ok) {
+            const data = await res.json();
+            const items = data.items || [];
+            statWishlistCount.textContent = items.length;
+
+            if (items.length === 0) {
+              wishlistTableBody.innerHTML = `
+                <tr>
+                  <td colspan="7" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                    No wishlist products saved in database yet.
+                  </td>
+                </tr>
+              `;
+              return;
+            }
+
+            wishlistTableBody.innerHTML = items.map(item => {
+              const isAmazon = item.source === 'amazon';
+              const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('en-IN') : 'Recently';
+              const userShort = item.user_id ? item.user_id.substring(0, 8) + '...' : 'Guest';
+
+              return `
+                <tr id="row-${item.id}">
+                  <td>
+                    <img src="${item.image || ''}" alt="" class="tbl-thumb" onerror="this.src='';">
+                  </td>
+                  <td>
+                    <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="tbl-title-link" title="${item.title}">
+                      ${item.title}
+                    </a>
+                  </td>
+                  <td>
+                    <span class="store-pill-mini ${isAmazon ? 'mini-amazon' : 'mini-flipkart'}">
+                      ${isAmazon ? 'Amazon' : 'Flipkart'}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>${item.price ? inrFormatter.format(item.price) : 'Check Site'}</strong>
+                  </td>
+                  <td style="font-family:monospace;font-size:0.8rem;color:var(--text-muted);">
+                    ${userShort}
+                  </td>
+                  <td style="color:var(--text-muted);font-size:0.82rem;">
+                    ${dateStr}
+                  </td>
+                  <td>
+                    <button type="button" class="btn-delete-row" data-id="${item.id}">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+
+            // Bind delete buttons
+            wishlistTableBody.querySelectorAll('.btn-delete-row').forEach(btn => {
+              btn.addEventListener('click', async function () {
+                const id = this.getAttribute('data-id');
+                if (confirm('Delete this product from database wishlist?')) {
+                  await deleteWishlistItem(id);
+                }
+              });
+            });
+          }
+        } catch (e) {
+          wishlistTableBody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align:center;padding:2rem;color:#ef4444;">
+                Error connecting to Supabase wishlist table.
+              </td>
+            </tr>
+          `;
+        }
+      }
+
+      async function deleteWishlistItem(id) {
+        try {
+          const res = await fetch(`/api/admin/wishlist/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            document.getElementById(`row-${id}`)?.remove();
+            showToast('Wishlist item deleted');
+            loadStats();
+          } else {
+            showToast('Failed to delete item', 'danger');
+          }
+        } catch (e) {
+          showToast('Error deleting item', 'danger');
+        }
+      }
+
+      async function purgeCache() {
+        btnPurgeCacheAdmin.disabled = true;
+        try {
+          const res = await fetch('/api/cache', { method: 'DELETE' });
+          if (res.ok) {
+            showToast('⚡ Cache cleared successfully!');
+            loadStats();
+          }
+        } catch (e) {
+          showToast('Error clearing cache', 'danger');
+        } finally {
+          btnPurgeCacheAdmin.disabled = false;
+        }
+      }
+
+      function showToast(msg, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        if (type === 'danger') toast.style.borderColor = '#fca5a5';
+        toastCenter.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transition = 'opacity 0.25s ease';
+          setTimeout(() => toast.remove(), 250);
+        }, 2800);
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+</html>
