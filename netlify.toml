@@ -1,0 +1,15 @@
+[build]
+  publish = "app/static"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+[[redirects]]
+  from = "/static/*"
+  to = "/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
