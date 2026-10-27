@@ -3,6 +3,7 @@
 
 [build.environment]
   PYTHON_VERSION = "3.12.8"
+  MISE_PYTHON_GITHUB_ATTESTATIONS = "false"
 
 [[redirects]]
   from = "/static/*"
